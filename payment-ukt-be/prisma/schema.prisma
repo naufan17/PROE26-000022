@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  // url      = env("DATABASE_URL")
+}
+
+model users {
+  id              String    @id @default(uuid())
+  name            String
+  email           String    @unique
+  password        String
+  phone           String?
+  role            String   @default("user")
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now())
+  accounts        accounts[]
+  bills           bills[]
+}
+
+model accounts {
+  id              String    @id @default(uuid())
+  user_id         String
+  user            users     @relation(fields: [user_id], references: [id])
+  account_number   String   @unique
+  bank_name        String
+  balance          Float    @default(0)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @default(now())
+  bills            bills[]
+}
+
+model bills {
+  id              String    @id @default(uuid())
+  user_id         String
+  user            users     @relation(fields: [user_id], references: [id])
+  due_date        DateTime
+  is_paid         Boolean   @default(false)
+  account_id      String
+  account         accounts  @relation(fields: [account_id], references: [id])
+  product_id      String
+  product         products  @relation(fields: [product_id], references: [id]) 
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @default(now())
+}
+
+model products {
+  id              String    @id @default(uuid())
+  name            String
+  price           Float
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @default(now())
+  bills           bills[]
+}

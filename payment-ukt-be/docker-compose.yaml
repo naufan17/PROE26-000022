@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  # Database service
+  database:
+    image: postgres:16-alpine
+    container_name: "postgres-payment-ukt-db"
+    environment:
+      - "POSTGRES_USER=${DB_USERNAME}"
+      - "POSTGRES_PASSWORD=${DB_PASSWORD}"
+      - "POSTGRES_DB=${DB_NAME}"
+    ports:
+      - "5432:${DB_PORT}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  # Application service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: "payment-ukt-app"
+    ports:
+      - "3000:${PORT}"
+    env_file:
+      - .env
+    environment:
+      - HOST=0.0.0.0
+      - DB_HOST=database
+      - DATABASE_URL=postgresql://${DB_USERNAME}:${DB_PASSWORD}@database:${DB_PORT}/${DB_NAME}?schema=public
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - app_network
+    restart: always
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  app_network:
+    driver: bridge
