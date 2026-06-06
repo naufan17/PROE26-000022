@@ -1,8 +1,6 @@
 const Login = () => {
   return (
-    <div>
-      <h1>Login Page</h1>
-      {/* Add your login form here */}
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
     </div>
   );
 }
